@@ -1,4 +1,7 @@
 const preUrl = 'http://localhost:8777';
+// const preUrl = 'http://118.190.1.80:8777'
+// const preUrl = 'https://118.190.1.80';
+
 
 //获取员工信息
 function getEmpInfo(openid) {
@@ -24,7 +27,7 @@ function getEmpInfo(openid) {
 //存图片
 function saveImg(empid, imgUrl) {
   wx.request({
-    url: preUrl + '/emp/getByOpenid',
+    url: preUrl + '/emp/saveImg',
     data: {
       empid: empid,
       imgUrl: imgUrl

@@ -4,10 +4,74 @@ const app = getApp()
 const qiniuUploader = require("../../utils/qiniuUploader");
 const empAction = require("../../utils/empAction");
 const preUrl = 'http://localhost:8777';
+// const preUrl = 'http://118.190.1.80:8777'
+// const preUrl = 'https://118.190.1.80';
 var uploadToken = 'aa';
 var userInfoG = {};
 var openid = '';
 var empInfo = {};
+
+Page({
+  data: {
+    motto: 'Hello World',
+    userInfo: {},
+    hasUserInfo: false,
+    canIUse: wx.canIUse('button.open-type.getUserInfo'),
+    imgUrl: ''
+  },
+  //事件处理函数
+  bindViewTap: function() {
+    wx.navigateTo({
+      url: '../logs/logs'
+    })
+  },
+  //上传图片
+  upload: upload,
+  //询问订阅消息
+  askSub: askSub,
+  onLoad: function () {
+    if (app.globalData.userInfo) {
+      this.setData({
+        userInfo: app.globalData.userInfo,
+        hasUserInfo: true
+      })
+      userInfoG = app.globalData.userInfo
+      console.log(userInfoG)
+    } else if (this.data.canIUse){
+      // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
+      // 所以此处加入 callback 以防止这种情况
+      app.userInfoReadyCallback = res => {
+        userInfoG = app.globalData.userInfo
+        this.setData({
+          userInfo: res.userInfo,
+          hasUserInfo: true
+        })
+      }
+    } else {
+      // 在没有 open-type=getUserInfo 版本的兼容处理
+      wx.getUserInfo({
+        success: res => {
+          app.globalData.userInfo = res.userInfo
+          this.setData({
+            userInfo: res.userInfo,
+            hasUserInfo: true
+          })
+        }
+      })
+    }
+    login();
+  },
+  getUserInfo: function(e) {
+    console.log(e)
+    app.globalData.userInfo = e.detail.userInfo
+    console.log(app.globalData.userInfo)
+    this.setData({
+      userInfo: e.detail.userInfo,
+      hasUserInfo: true
+    })
+  },
+  login: login
+})
 
 // request post 请求
 const postData = (url, param) => {
@@ -45,6 +109,7 @@ function getUploadToken() {
     }
   })
 };
+
 //上传图片
 async function upload() {
   console.log(app.globalData.userInfo)
@@ -56,7 +121,9 @@ async function upload() {
   uploadToken = await postData(preUrl + '/qiniu/getToken?pwd=sinopec', {});
   console.log('empInfo')
   console.log(this.empInfo)
-  
+  console.log('redeay sub')
+  askSub();
+
   wx.chooseImage({
     count: 1,
     sizeType: ['original', 'compressed'],
@@ -87,7 +154,9 @@ async function upload() {
         });
         console.log('file url is: ' + res.fileUrl);
         console.log('img url is: ' + res.imageURL);
-        empAction.saveImg(empInfo.empId, res.imageURL);
+        console.log('empinfo in upload');
+        console.log(empInfo)
+        empAction.saveImg(empInfo.employeId, res.imageURL);
       }, (error) => {
         console.log('error: ' + error);
       }, {
@@ -110,124 +179,61 @@ async function upload() {
         });
     }
   })
-  
+
 };
 
-Page({
-  data: {
-    motto: 'Hello World',
-    userInfo: {},
-    hasUserInfo: false,
-    canIUse: wx.canIUse('button.open-type.getUserInfo'),
-    imgUrl: ''
-  },
-  //事件处理函数
-  bindViewTap: function() {
-    wx.navigateTo({
-      url: '../logs/logs'
-    })
-  },
-  //上传图片
-  upload: upload,
-  //询问订阅消息
-  askSub: function(){
-    const that = this
-    wx.requestSubscribeMessage({
-      tmplIds: ['Vua6rZBa3pYRYfwYdMxrvPKhGoE0un5VFzmaeom9eoU'],
-      success(res) { 
-        console.log(res)
-        that.setData({
-          motto: 'subOk'
+function login() {
+  var code = '';
+  wx.login({
+    success(res) {
+      if (res.code) {
+        code = res.code;
+        console.log(res.code);
+        wx.request({
+          url: preUrl + '/getOpenId?code=' + code,
+          method: 'POST',
+          success(res) {
+            console.log('get openid success!');
+            openid = res.data.openid;
+            console.log(openid);
+            // console.log(res);
+            wx.request({
+              url: preUrl + '/emp/getByOpenid',
+              data: {
+                openid: openid
+              },
+              method: 'POST',
+              success(res) {
+                console.log('get empinfo suc:');
+                // console.log(res)
+                empInfo = res.data.data;
+              },
+              fail(res) {
+                console.log('get empinfo fail')
+                console.log(res)
+                empInfo = '';
+              }
+            });
+            console.log('empinfo now');
+            console.log(empInfo);
+          },
+          fail(res) {
+            console.log('get openid fail! :' + res.toString());
+          }
         })
+      } else {
+        console.log('登录失败！' + res.errMsg)
       }
-    })
-  },
-  //发送消息
-  sendMsg: function(){
-
-  },
-  onLoad: function () {
-    if (app.globalData.userInfo) {
-      this.setData({
-        userInfo: app.globalData.userInfo,
-        hasUserInfo: true
-      })
-      userInfoG = app.globalData.userInfo
-      console.log(userInfoG)
-    } else if (this.data.canIUse){
-      // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
-      // 所以此处加入 callback 以防止这种情况
-      app.userInfoReadyCallback = res => {
-        userInfoG = app.globalData.userInfo
-        this.setData({
-          userInfo: res.userInfo,
-          hasUserInfo: true
-        })
-      }
-    } else {
-      // 在没有 open-type=getUserInfo 版本的兼容处理
-      wx.getUserInfo({
-        success: res => {
-          app.globalData.userInfo = res.userInfo
-          this.setData({
-            userInfo: res.userInfo,
-            hasUserInfo: true
-          })
-        }
-      })
     }
-  },
-  getUserInfo: function(e) {
-    console.log(e)
-    app.globalData.userInfo = e.detail.userInfo
-    console.log(app.globalData.userInfo)
-    this.setData({
-      userInfo: e.detail.userInfo,
-      hasUserInfo: true
-    })
-  },
-  login: function(){
-    var code = '';
-    wx.login({
-      success(res) {
-        if (res.code) {
-          code = res.code;
-          console.log(res.code);
-          wx.request({
-            url: preUrl + '/getOpenId?code=' + code,
-            method: 'POST',
-            success(res) {
-              console.log('get openid success!');
-              openid = res.data.openid;
-              console.log(openid);
-              // console.log(res);
-              wx.request({
-                url: preUrl + '/emp/getByOpenid',
-                data: {
-                  openid: openid
-                },
-                method: 'POST',
-                success(res) {
-                  console.log('get empinfo:');
-                  console.log(res)
-                  empInfo = res.data.data;
-                },
-                fail(res) {
-                  console.log('get empinfo fail')
-                  console.log(res)
-                  empInfo = '';
-                }
-              });
-              console.log(empInfo);
-            },
-            fail(res) {
-              console.log('get openid fail! :' + res.toString());
-            }
-          })
-        } else {
-          console.log('登录失败！' + res.errMsg)
-        }
-      }
-    })
-  }
-})
+  })
+};
+
+function askSub() {
+  console.log('entern sub');
+  wx.requestSubscribeMessage({
+    tmplIds: ['Vua6rZBa3pYRYfwYdMxrvPKhGoE0un5VFzmaeom9eoU'],
+    success(res) {
+      console.log(res)
+    }
+  })
+};
