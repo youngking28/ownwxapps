@@ -3,9 +3,9 @@
 const app = getApp()
 const qiniuUploader = require("../../utils/qiniuUploader");
 const empAction = require("../../utils/empAction");
-const preUrl = 'http://localhost:8777';
+// const preUrl = 'http://localhost:8777';
 // const preUrl = 'http://118.190.1.80:8777'
-// const preUrl = 'https://118.190.1.80';
+const preUrl = 'https://www.youngking28.club/';
 var uploadToken = 'aa';
 var userInfoG = {};
 var openid = '';
@@ -17,7 +17,8 @@ Page({
     userInfo: {},
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
-    imgUrl: ''
+    imgUrl: '',
+    loginInput: false
   },
   //事件处理函数
   bindViewTap: function() {
@@ -184,6 +185,7 @@ async function upload() {
 
 function login() {
   var code = '';
+  const that = this;
   wx.login({
     success(res) {
       if (res.code) {
@@ -226,6 +228,14 @@ function login() {
       }
     }
   })
+  console.log('check empinfo')
+  console.log(empInfo)
+  if (empInfo == {} || empInfo == null) {
+    that.setData({
+      loginInput: true,
+      motto: '请输入姓名及工号'
+    })
+  }
 };
 
 function askSub() {

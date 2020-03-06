@@ -13,7 +13,10 @@
   <view class="usermotto">
     <button bindtap="upload">上传图片</button>
     <button bindtap="askSub">订阅消息</button>
+    <input wx:if="{{loginInput}}" placeholder="姓名"></input>
+    <input wx:if="{{loginInput}}" placeholder="工号"></input>
+    <text wx:if="{{loginInput}}">{{motto}}</text>
     <button bindtap="login">login</button>
-    <text class="user-motto">{{motto}}</text>
+    
   </view>
 </view>

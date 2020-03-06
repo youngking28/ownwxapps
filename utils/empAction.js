@@ -1,6 +1,6 @@
-const preUrl = 'http://localhost:8777';
+// const preUrl = 'http://localhost:8777';
 // const preUrl = 'http://118.190.1.80:8777'
-// const preUrl = 'https://118.190.1.80';
+const preUrl = 'https://www.youngking28.club/';
 
 
 //获取员工信息
@@ -13,7 +13,7 @@ function getEmpInfo(openid) {
     method: 'POST',
     success(res) {
       console.log('get empinfo:');
-      console.log(res)
+      console.log(res);
       return res.data;
     },
     fail(res) {
