@@ -7,15 +7,12 @@
       <text class="userinfo-nickname">{{userInfo.nickName}}</text>
     </block>
   </view>
-  <view class="userinfo">
-    <image wx:if="{{imgUrl != ''}}" src="{{imgUrl}}" class="userinfo-avatar"></image>
-  </view>
   <view class="usermotto">
     <button bindtap="upload" wx:if="{{isUploadBtnShow}}">上传图片</button>
-    <button bindtap="askSub">订阅消息</button>
-    <button bindtap="login">login</button>
+    <button bindtap="askSub" wx:if="{{isUploadBtnShow}}">订阅消息</button>
+    <button bindtap="login" wx:if="{{isLoginBtnShow}}">录入信息</button>
 
-    <view wx:if="{{isLoginInputShow}}">
+    <!-- <form wx:if="{{isLoginInputShow}}">
       <text wx:if="{{isLoginInputShow}}">{{motto}}</text>
       <view class="itemView">姓名：
       <input placeholder="姓名" bindinput="empNameIn"></input>
@@ -24,6 +21,27 @@
         <input placeholder="工号" bindinput="empidIn"></input>
       </view>
       <button bindtap="empLogin">录入信息</button>
-    </view>
+    </form> -->
   </view>
+  <div class="page">
+    <div id="toastSuccess" class=" {{bUploadSuccess==true?'vf-active':'vf'}}">
+          <div class="weui-mask_transparent"></div>
+          <div class="weui-toast">
+              <i class="weui-icon-success-no-circle weui-icon_toast"></i>
+              <p class="weui-toast__content">上传成功</p>
+          </div>
+      </div>
+  </div>
+  <!-- loading toast -->
+    <div id="loadingToast" class=" {{bUploading==true?'vf-active':'vf'}}">
+        <div class="weui-mask_transparent"></div>
+        <div class="weui-toast">
+            <i class="weui-loading weui-icon_toast"></i>
+            <p class="weui-toast__content">图片上传中</p>
+        </div>
+    </div>
+    <div class="weui-toptips weui-toptips_warn {{bUploadFail==true?'vf-active':'vf'}}" >图片上传失败，请重试。</div>
 </view>
+  <view class="userinfo">
+    <image wx:if="{{imgUrl != ''}}" src="{{imgUrl}}" class="preview-image"></image>
+  </view>

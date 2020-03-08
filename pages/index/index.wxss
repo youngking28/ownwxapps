@@ -17,5 +17,18 @@
 }
 
 .usermotto {
-  margin-top: 200px;
+  margin-top: 80px;
+}
+
+.preview-image {
+  width: 300rpx;
+  height: 300rpx;
+  margin: 20rpx;
+}
+
+.vf {
+  display: none;
+}
+.vf-active {
+  display: block;
 }

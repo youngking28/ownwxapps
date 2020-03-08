@@ -18,10 +18,13 @@ Page({
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     imgUrl: '',
-    isLoginInputShow: false,
+    isLoginBtnShow: true,
     isUploadBtnShow: false,
     empid: '',
-    empName: ''
+    empName: '',
+    bUploadSuccess: false,
+    bUploading: false,
+    bUploadFail: false
   },
   //事件处理函数
   bindViewTap: function() {
@@ -69,7 +72,7 @@ Page({
         }
       })
     }
-    login();
+    login(this);
   },
   getUserInfo: function(e) {
     console.log(e)
@@ -80,7 +83,11 @@ Page({
       hasUserInfo: true
     })
   },
-  login: login
+  login: function () {
+    wx.redirectTo({
+      url: '../login/login'
+    })
+  }
 })
 
 // request post 请求
@@ -151,6 +158,10 @@ async function upload() {
       console.log('uploadToken');
       console.log(uploadToken);
       // 交给七牛上传
+      //显示等待
+      that.setData({
+        bUploading: true
+      });
       qiniuUploader.upload(filePath, (res) => {
         // 每个文件上传成功后,处理相关的事情
         // 其中 info 是文件上传成功后，服务端返回的json，形式如
@@ -161,13 +172,31 @@ async function upload() {
         // 参考http://developer.qiniu.com/docs/v6/api/overview/up/response/simple-response.html
         that.setData({
           'imgUrl': 'http://' + res.imageURL,
+          bUploadFail: false,
+          bUploadSuccess: true,
+          bUploading:false
         });
+        setTimeout(function () {
+          that.setData({
+            bUploadSuccess: false
+          });
+        }, 2000);
         console.log('file url is: ' + res.fileUrl);
         console.log('img url is: ' + res.imageURL);
         console.log('empinfo in upload');
         console.log(empInfo)
         empAction.saveImg(empInfo.employeId, res.imageURL);
       }, (error) => {
+        that.setData({
+          bUploadFail: true,
+          bUploadSuccess: false,
+          bUploading: false
+        });
+        setTimeout(function () {
+          that.setData({
+            bUploadFail: false
+          });
+        }, 2000);
         console.log('error: ' + error);
       }, {
           region: 'ECN',
@@ -192,9 +221,9 @@ async function upload() {
 
 };
 
-function login() {
+function login(oParant) {
   var code = '';
-  const that = this;
+  var that = oParant ? oParant : this;
   wx.login({
     success(res) {
       if (res.code) {
@@ -206,6 +235,7 @@ function login() {
           success(res) {
             console.log('get openid success!');
             openid = res.data.openid;
+            app.globalData.openid = openid;
             console.log(openid);
             // console.log(res);
             wx.request({
@@ -218,12 +248,35 @@ function login() {
                 console.log('get empinfo suc:');
                 // console.log(res)
                 empInfo = res.data.data;
-                askSub();
+                if(empInfo == {} || empInfo == null){
+                  that.setData({
+                    isUploadBtnShow: false,
+                    isLoginBtnShow: true,
+                    motto: '请输入姓名及工号'
+                  })
+                  wx.redirectTo({
+                    url: '../login/login'
+                  })
+                }else{
+                  that.setData({
+                    isUploadBtnShow: true,
+                    isLoginBtnShow: false,
+                    motto: 'emp exist'
+                  });
+                }
               },
               fail(res) {
                 console.log('get empinfo fail')
                 console.log(res)
                 empInfo = '';
+                that.setData({
+                  isUploadBtnShow: false,
+                  isLoginBtnShow: true,
+                  motto: '请输入姓名及工号'
+                })
+                wx.redirectTo({
+                  url: '../login/login'
+                })
               }
             });
             console.log('empinfo now');
@@ -231,28 +284,29 @@ function login() {
           },
           fail(res) {
             console.log('get openid fail! :' + res.toString());
+            that.setData({
+              isUploadBtnShow: false,
+              isLoginBtnShow: true,
+              motto: '请输入姓名及工号'
+            })
+            wx.redirectTo({
+              url: '../login/login'
+            })
           }
         })
       } else {
-        console.log('登录失败！' + res.errMsg)
+        console.log('登录失败！' + res.errMsg);
+        that.setData({
+          isUploadBtnShow: false,
+          isLoginBtnShow: true,
+          motto: '请输入姓名及工号'
+        })
+        wx.redirectTo({
+          url: '../login/login'
+        })
       }
     }
-  })
-  console.log('check empinfo')
-  console.log(empInfo)
-  if (empInfo == {} || empInfo == null) {
-    that.setData({
-      isUploadBtnShow: false,
-      isLoginInputShow: true,
-      motto: '请输入姓名及工号'
-    })
-  }else{
-    that.setData({
-      isUploadBtnShow: true,
-      isLoginInputShow: false,
-      motto: 'emp exist'
-    })
-  }
+  });
 };
 
 function askSub() {
@@ -287,7 +341,7 @@ function saveOpenid(){
         console.log('saveOpenid set data ok')
       }else{
         that.setData({
-          isLoginInputShow: false,
+          isLoginBtnShow: false,
           motto: 'emp exist'
         })
       }
