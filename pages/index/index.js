@@ -18,7 +18,10 @@ Page({
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     imgUrl: '',
-    loginInput: false
+    isLoginInputShow: false,
+    isUploadBtnShow: false,
+    empid: '',
+    empName: ''
   },
   //事件处理函数
   bindViewTap: function() {
@@ -26,6 +29,12 @@ Page({
       url: '../logs/logs'
     })
   },
+  //登陆员工信息
+  empLogin: saveOpenid,
+  //获取姓名 
+  empNameIn: empNameIn,
+  //获取工号
+  empidIn: empidIn,
   //上传图片
   upload: upload,
   //询问订阅消息
@@ -123,7 +132,7 @@ async function upload() {
   console.log('empInfo')
   console.log(this.empInfo)
   console.log('redeay sub')
-  askSub();
+  
 
   wx.chooseImage({
     count: 1,
@@ -209,6 +218,7 @@ function login() {
                 console.log('get empinfo suc:');
                 // console.log(res)
                 empInfo = res.data.data;
+                askSub();
               },
               fail(res) {
                 console.log('get empinfo fail')
@@ -232,8 +242,15 @@ function login() {
   console.log(empInfo)
   if (empInfo == {} || empInfo == null) {
     that.setData({
-      loginInput: true,
+      isUploadBtnShow: false,
+      isLoginInputShow: true,
       motto: '请输入姓名及工号'
+    })
+  }else{
+    that.setData({
+      isUploadBtnShow: true,
+      isLoginInputShow: false,
+      motto: 'emp exist'
     })
   }
 };
@@ -244,6 +261,54 @@ function askSub() {
     tmplIds: ['Vua6rZBa3pYRYfwYdMxrvPKhGoE0un5VFzmaeom9eoU'],
     success(res) {
       console.log(res)
+    },
+    fail(res){
+      console.log('sub fail');
+      console.log(res)
     }
+  })
+};
+
+function saveOpenid(){
+  var empid = this.data.empid;
+  var empName = this.data.empName;
+  empAction.saveOpenid(empid, empName, openid);
+  const that = this;
+  wx.request({
+    url: preUrl + '/emp/getByOpenid',
+    data: {
+      openid: openid
+    },
+    method: 'POST',
+    success(res) {
+      empInfo = res.data.data;
+      if (empInfo == {} || empInfo == null){
+        // that.data.isLoginInputShow = false;
+        console.log('saveOpenid set data ok')
+      }else{
+        that.setData({
+          isLoginInputShow: false,
+          motto: 'emp exist'
+        })
+      }
+    },
+    fail(res) {
+      console.log('get empinfo fail')
+      console.log(res)
+      empInfo = '';
+    }
+  });
+};
+
+//获取用户输入的用户名
+function empNameIn(e) {
+  this.setData({
+    empName: e.detail.value
+  })
+};
+//获取用户输入的工号
+function empidIn(e) {
+  this.setData({
+    empid: e.detail.value
   })
 };

@@ -46,7 +46,29 @@ function saveImg(empid, imgUrl) {
   })
 };
 
+//员工首次登陆，录入openid
+function saveOpenid(empid, empName, empOpenid) {
+  wx.request({
+    url: preUrl + '/emp/updateOpenid',
+    data: {
+      empid: empid,
+      openid: empOpenid,
+      emp_name: empName
+    },
+    method: 'POST',
+    success(res) {
+      console.log('saveOpenid success:');
+      console.log(res);
+    },
+    fail(res) {
+      console.log('saveOpenid fail');
+      console.log(res);
+    }
+  })
+};
+
 module.exports = {
   getEmpInfo: getEmpInfo,
   saveImg: saveImg,
+  saveOpenid: saveOpenid,
 }

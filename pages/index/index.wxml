@@ -11,12 +11,19 @@
     <image wx:if="{{imgUrl != ''}}" src="{{imgUrl}}" class="userinfo-avatar"></image>
   </view>
   <view class="usermotto">
-    <button bindtap="upload">上传图片</button>
+    <button bindtap="upload" wx:if="{{isUploadBtnShow}}">上传图片</button>
     <button bindtap="askSub">订阅消息</button>
-    <input wx:if="{{loginInput}}" placeholder="姓名"></input>
-    <input wx:if="{{loginInput}}" placeholder="工号"></input>
-    <text wx:if="{{loginInput}}">{{motto}}</text>
     <button bindtap="login">login</button>
-    
+
+    <view wx:if="{{isLoginInputShow}}">
+      <text wx:if="{{isLoginInputShow}}">{{motto}}</text>
+      <view class="itemView">姓名：
+      <input placeholder="姓名" bindinput="empNameIn"></input>
+      </view>
+      <view class="itemView">工号：
+        <input placeholder="工号" bindinput="empidIn"></input>
+      </view>
+      <button bindtap="empLogin">录入信息</button>
+    </view>
   </view>
 </view>
